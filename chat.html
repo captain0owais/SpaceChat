@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>SpaceChat - Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="stars">
+  <div class="chat-box">
+    <br><br>
+     <button onclick="goBack()" style="align-self: flex-start; max-width: fit-content; min-width: fit-content;">⬅️ Back</button>
+    <h2 id="channel-name"></h2>
+
+    <div id="messages" class="scroll-area"></div>
+
+    <div class="input-area">
+      <textarea id="message" placeholder="Type a message"></textarea>
+      </div><div>
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded, increment, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDS7vXa7IOQkNML22LiiR1TJCLmvEFNtw",
+  authDomain: "flashtalk-5446f.firebaseapp.com",
+  databaseURL: "https://flashtalk-5446f-default-rtdb.firebaseio.com",
+  projectId: "flashtalk-5446f",
+  storageBucket: "flashtalk-5446f.firebasestorage.app",
+  messagingSenderId: "1070139329449",
+  appId: "1:1070139329449:web:9a4c28befd060aa92492b8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const channel = urlParams.get("channel");
+    const username = localStorage.getItem("username");
+
+    document.getElementById("channel-name").innerText = `#${channel}`;
+
+    const messagesRef = ref(db, `messages/${channel}`);
+
+    onChildAdded(messagesRef, (snapshot) => {
+      const { user, text, timestamp } = snapshot.val();
+     const msgContainer = document.createElement("div");
+msgContainer.className = user === username ? "message sent" : "message received";
+
+const bubble = `
+  <div class="bubble">
+    <div class="meta">
+      <strong>${user}</strong>
+      <span class="timestamp">${new Date(timestamp).toLocaleTimeString()}</span>
+    </div>
+    <div class="text">${text}</div>
+  </div>
+`;
+
+msgContainer.innerHTML = bubble;
+document.getElementById("messages").appendChild(msgContainer);
+document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+
+    });
+
+// Define global sendMessage function
+window.sendMessage = async function () {
+  const input = document.getElementById("message");
+  const text = input.value.trim();
+
+  if (text) {
+    await push(messagesRef, {
+      user: username,
+      text,
+      timestamp: Date.now()
+    });
+
+    await update(ref(db, 'channels/' + channel), { count: increment(1) });
+
+    input.value = ""; // Clear input after sending
+    input.focus();    // Focus back on the input
+  }
+};
+
+// Define a reusable handler to avoid duplicate listeners
+function handleEnter(event) {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    window.sendMessage();
+  }
+}
+
+// Attach keydown listener ONCE safely
+const messageInput = document.getElementById("message");
+messageInput.removeEventListener("keydown", handleEnter);
+messageInput.addEventListener("keydown", handleEnter);
+
+    window.goBack = function () {
+      window.location.href = "channels.html";
+    }
+
+  </script>
+</body>
+</html>

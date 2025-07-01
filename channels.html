@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>SpaceChat - Channels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="stars">
+  <div class="channel-box">
+    <h1>🌌 Choose a Channel</h1>
+    <ul id="channel-list"></ul>
+    <input type="text" id="new-channel" placeholder="New channel name">
+    <button onclick="createChannel()">➕ Create</button>
+     <button onclick="logout()" style="margin-top: 20px;">🔙 Logout</button>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+apiKey: "AIzaSyBDS7vXa7IOQkNML22LiiR1TJCLmvEFNtw",
+  authDomain: "flashtalk-5446f.firebaseapp.com",
+  databaseURL: "https://flashtalk-5446f-default-rtdb.firebaseio.com",
+  projectId: "flashtalk-5446f",
+  storageBucket: "flashtalk-5446f.firebasestorage.app",
+  messagingSenderId: "1070139329449",
+  appId: "1:1070139329449:web:9a4c28befd060aa92492b8"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const dbRef = ref(db);
+
+  // Load channels sorted by popularity
+  async function loadChannels() {
+    const snapshot = await get(child(dbRef, 'channels'));
+    const data = snapshot.exists() ? snapshot.val() : {};
+    const sorted = Object.entries(data).sort((a, b) => b[1].count - a[1].count);
+    const list = document.getElementById("channel-list");
+    list.innerHTML = "";
+
+    sorted.forEach(([channel, meta]) => {
+      const li = document.createElement("li");
+      li.textContent = `#${channel} (${meta.count})`;
+      li.onclick = () => window.location.href = `chat.html?channel=${channel}`;
+      list.appendChild(li);
+    });
+  }
+
+  // Attach to window to fix onclick reference
+  window.createChannel = async function () {
+    const name = document.getElementById("new-channel").value.trim();
+    if (name) {
+      await set(ref(db, 'channels/' + name), { count: 0 });
+      loadChannels();
+      document.getElementById("new-channel").value = '';
+    }
+  }
+
+    window.logout = function () {
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+    }
+
+    // Prevent access if no username
+    if (!localStorage.getItem("username")) {
+      window.location.href = "index.html";
+    } else {
+      loadChannels();
+    }
+</script>
+
+</body>
+</html>

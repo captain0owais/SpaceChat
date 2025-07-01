@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpaceChat - Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geo&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="stars">
+  <div class="login-box">
+    <h1>🚀 SpaceChat</h1>
+    <input type="text" id="username" placeholder="Enter your username" />
+    <button onclick="saveUsername()">Enter Chat</button>
+  </div>
+  <script>
+    function saveUsername() {
+      const name = document.getElementById("username").value;
+      if (name) {
+        localStorage.setItem("username", name);
+        window.location.href = "channels.html";
+      }
+    }
+  </script>
+</body>
+</html>
